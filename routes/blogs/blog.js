@@ -30,8 +30,12 @@ router.post("/", photoUpload.single("image"), async (req, res) => {
     const imagePath = path.join(__dirname, `../../images/${req.file.filename}`);
 
     const insertResult = await insertBlog(description, date, imagePath);
-
     res.json(insertResult);
+    fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error("Error deleting image:", err);
+        }
+      });
   } catch (error) {
     return res.status(404).json({ msg: error.message });
   }
