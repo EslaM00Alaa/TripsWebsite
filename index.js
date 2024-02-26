@@ -28,6 +28,7 @@ app.use(cors());
 
 app.use("/api/classes",require("./routes/classes/classes"))
 app.use("/api/types",require("./routes/typesforClass/types"))
+app.use("/api/blogs",require("./routes/blogs/blog"))
 
 
 

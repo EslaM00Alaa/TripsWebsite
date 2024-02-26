@@ -21,13 +21,28 @@ async function isReady() {
             class_id INT REFERENCES classes(id) ON DELETE CASCADE,
             name VARCHAR(255) NOT NULL,
             description VARCHAR(1000) NOT NULL
-        );`
+        );`,
+      `
+      CREATE TABLE IF NOT EXISTS images (
+        image_id VARCHAR(255) PRIMARY KEY,
+        image VARCHAR(255) NOT NULL
+      );
+      `,
+        `
+        CREATE TABLE IF NOT EXISTS blogs (
+          id VARCHAR(255) PRIMARY KEY,
+          description VARCHAR(1000) NOT NULL,
+          date VARCHAR(255) NOT NULL 
+        );
+        `
     ];
     
   
       const tablesToCheck = [
         "classes",
-         "types"
+         "types",
+         "images",
+         "blogs"
       ];
   
       let c = 0;

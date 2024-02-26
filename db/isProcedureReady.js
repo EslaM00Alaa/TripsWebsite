@@ -75,6 +75,67 @@ async function procedureReady() {
       $$;      
         `,
       },
+      {
+        name: "insert_image",
+        query: `
+          CREATE OR REPLACE PROCEDURE insert_image(
+            IN input_id VARCHAR(255),
+            IN input_image VARCHAR(255)
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            INSERT INTO images (image_id, image) VALUES (input_id, input_image);
+          END;
+          $$;
+        `,
+      },
+      {
+        name: "insert_blog",
+        query: `
+          CREATE OR REPLACE PROCEDURE insert_blog(
+            IN input_id VARCHAR(255),
+            IN input_description VARCHAR(1000),
+            IN input_date VARCHAR(255)
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            INSERT INTO blogs (id, description, date) VALUES (input_id, input_description, input_date);
+          END;
+          $$;
+        `,
+      },
+      {
+        name: "get_blogs",
+        query: `
+          CREATE OR REPLACE FUNCTION get_blogs()
+          RETURNS TABLE (id VARCHAR(255), description VARCHAR(1000), date VARCHAR(255),image VARCHAR(255))
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            RETURN QUERY SELECT b.id, b.description, b.date, i.image
+            FROM blogs b
+            INNER JOIN images i ON b.id = i.image_id;
+          END;
+          $$;
+        `,
+      },
+      {
+        name: "delete_blog",
+        query: `
+          CREATE OR REPLACE PROCEDURE delete_blog(
+            IN input_id VARCHAR(255)
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            DELETE FROM blogs WHERE id = input_id ;
+          END;
+          $$;
+        `,
+      },
+      
       
     ];
 
