@@ -63,13 +63,62 @@ router.post("/image", photoUpload.single("image"), async (req, res) => {
 });
 
 
+router.get("/trip/:id", async (req, res) => {
+    try {
+        const result = await client.query("SELECT * FROM get_trip($1);",[req.params.id]);
+        const trips = result.rows;
+        res.json({ trips });
+    } catch (error) {
+        console.error("Error fetching all trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
+
+router.get("/all", async (req, res) => {
+    try {
+        const result = await client.query("SELECT * FROM get_trips();");
+        const trips = result.rows;
+        res.json({ trips });
+    } catch (error) {
+        console.error("Error fetching all trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
+
+router.get("/random4", async (req, res) => {
+    try {
+        const result = await client.query("SELECT * FROM get_4_trips();");
+        const trips = result.rows;
+        res.json({ trips });
+    } catch (error) {
+        console.error("Error fetching random 4 trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
 
 
 
+router.get("/random3", async (req, res) => {
+    try {
+        const result = await client.query("SELECT * FROM get_3_trips();");
+        const trips = result.rows;
+        res.json({ trips });
+    } catch (error) {
+        console.error("Error fetching random 3 trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
 
 
-
-
+router.delete("/trip/:id", async (req, res) => {
+    try {
+        await client.query("CALL delete_trip($1);",[req.params.id]);
+        res.json({ msg : "done"});
+    } catch (error) {
+        console.error("Error fetching all trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
 
 
 

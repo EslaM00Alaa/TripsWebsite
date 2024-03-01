@@ -140,7 +140,7 @@ async function procedureReady() {
         query: `
         CREATE OR REPLACE FUNCTION insert_trip(
           IN input_price INT,
-          IN input_vehicle VARCHAR(300),
+          IN input_vechicle VARCHAR(300),
           IN input_duration VARCHAR(300),
           IN input_description VARCHAR(1500)
         )
@@ -151,7 +151,7 @@ async function procedureReady() {
           trip_id INT;
         BEGIN
           INSERT INTO trips (price, vechicle, duration, description)
-          VALUES (input_price, input_vehicle, input_duration, input_description)
+          VALUES (input_price, input_vechicle, input_duration, input_description)
           RETURNING id INTO trip_id;
           
           RETURN trip_id;
@@ -191,8 +191,184 @@ async function procedureReady() {
                 
         `,
       },
-      
-      
+      {
+        name: "get_trips",
+        query: `
+        CREATE OR REPLACE FUNCTION get_trips()
+        RETURNS TABLE (
+            id INT,
+            price INT,
+            vechicle VARCHAR(300),
+            duration VARCHAR(300),
+            description VARCHAR(1500),
+            images VARCHAR[],
+            inclusion_descriptions VARCHAR[]
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.price,
+                trips.vechicle,
+                trips.duration,
+                trips.description,
+                array_agg(DISTINCT  tripimages.image) AS images,
+                array_agg(DISTINCT  includes.description) AS inclusion_descriptions
+            FROM 
+                trips 
+            LEFT JOIN 
+                tripimages ON trips.id = tripimages.trip_id
+            LEFT JOIN 
+                includes ON trips.id = includes.trip_id
+            GROUP BY 
+                trips.id;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        `,
+      },
+      {
+        name: "get_trip",
+        query: `
+        CREATE OR REPLACE FUNCTION get_trip(
+          IN input_trip_id INT
+        )
+        RETURNS TABLE (
+            id INT,
+            price INT,
+            vechicle VARCHAR(300),
+            duration VARCHAR(300),
+            description VARCHAR(1500),
+            images VARCHAR[],
+            inclusion_descriptions VARCHAR[]
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.price,
+                trips.vechicle,
+                trips.duration,
+                trips.description,
+                array_agg(DISTINCT  tripimages.image) AS images,
+                array_agg(DISTINCT  includes.description) AS inclusion_descriptions
+            FROM 
+                trips 
+            LEFT JOIN 
+                tripimages ON trips.id = tripimages.trip_id
+            LEFT JOIN 
+                includes ON trips.id = includes.trip_id
+            WHERE   trips.id = input_trip_id  
+            GROUP BY 
+                trips.id;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        `,
+      },
+      {
+        name: "get_4_trips",
+        query: `
+        CREATE OR REPLACE FUNCTION get_4_trips()
+        RETURNS TABLE (
+            id INT,
+            price INT,
+            vehicle VARCHAR(300),
+            duration VARCHAR(300),
+            description VARCHAR(1500),
+            images VARCHAR[],
+            inclusion_descriptions VARCHAR[]
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.price,
+                trips.vechicle,
+                trips.duration,
+                trips.description,
+                array_agg(DISTINCT tripimages.image) AS images,
+                array_agg(DISTINCT includes.description) AS inclusion_descriptions
+            FROM 
+                trips 
+            LEFT JOIN 
+                tripimages ON trips.id = tripimages.trip_id
+            LEFT JOIN 
+                includes ON trips.id = includes.trip_id
+            GROUP BY 
+                trips.id
+            ORDER BY 
+                RANDOM()
+            LIMIT 
+                4;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        `,
+      },
+      {
+        name: "get_3_trips",
+        query: `
+        CREATE OR REPLACE FUNCTION get_3_trips()
+        RETURNS TABLE (
+            id INT,
+            price INT,
+            vehicle VARCHAR(300),
+            duration VARCHAR(300),
+            description VARCHAR(1500),
+            images VARCHAR[],
+            inclusion_descriptions VARCHAR[]
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.price,
+                trips.vechicle,
+                trips.duration,
+                trips.description,
+                array_agg(DISTINCT tripimages.image) AS images,
+                array_agg(DISTINCT includes.description) AS inclusion_descriptions
+            FROM 
+                trips 
+            LEFT JOIN 
+                tripimages ON trips.id = tripimages.trip_id
+            LEFT JOIN 
+                includes ON trips.id = includes.trip_id
+            GROUP BY 
+                trips.id
+            ORDER BY 
+                RANDOM()
+            LIMIT 
+                3;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        `,
+      },
+      {
+        name: "delete_trip",
+        query: `
+        CREATE OR REPLACE PROCEDURE delete_trip(IN input_trip_id INT)
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+            -- Delete from tripimages table
+            DELETE FROM tripimages WHERE trip_id = input_trip_id;
+        
+            -- Delete from includes table
+            DELETE FROM includes WHERE trip_id = input_trip_id;
+        
+            -- Delete from trips table
+            DELETE FROM trips WHERE id = input_trip_id;
+        END;
+        $$;
+        `,
+      },
     ];
 
     let createdCount = 0;
@@ -208,7 +384,9 @@ async function procedureReady() {
         );
       `;
 
-      const { rows } = await client.query(procedureCheckQuery, [procedureQuery.name]);
+      const { rows } = await client.query(procedureCheckQuery, [
+        procedureQuery.name,
+      ]);
       const procedureExists = rows[0].exists;
 
       if (procedureExists) {
