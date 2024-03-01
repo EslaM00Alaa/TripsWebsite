@@ -29,20 +29,42 @@ app.use(cors());
 app.use("/api/classes",require("./routes/classes/classes"))
 app.use("/api/types",require("./routes/typesforClass/types"))
 app.use("/api/blogs",require("./routes/blogs/blog"))
+app.use("/api/trips",require("./routes/trips/trip"))
 
 
 
+app.get('/dealltable', async (req, res) => {
+  try {
+   
+    let query = `SELECT 'DROP TABLE IF EXISTS "' || tablename || '" CASCADE;' FROM pg_tables WHERE schemaname = 'public';`;
+    let result = await client.query(query);
+    for (const row of result.rows) {
+      const dropTableQuery = row['?column?'];
+      await client.query(dropTableQuery);
+    }
 
-app.get('/', (req, res) => res.send('Hello World!'))
+    // Drop all functions
+    query = `SELECT 'DROP FUNCTION IF EXISTS "' || routine_name || '" CASCADE;' FROM information_schema.routines WHERE specific_schema = 'public' AND routine_type = 'FUNCTION';`;
+    result = await client.query(query);
+    for (const row of result.rows) {
+      const dropFunctionQuery = row['?column?'];
+      await client.query(dropFunctionQuery);
+    }
 
+    // Drop all procedures
+    query = `SELECT 'DROP PROCEDURE IF EXISTS "' || proname || '" CASCADE;' FROM pg_proc WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public');`;
+    result = await client.query(query);
+    for (const row of result.rows) {
+      const dropProcedureQuery = row['?column?'];
+      await client.query(dropProcedureQuery);
+    }
 
-
-
-
-
-
-
-
+    await client.end();
+    res.json({ msg: "All tables, functions, and procedures deleted." });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});   
 
 
 

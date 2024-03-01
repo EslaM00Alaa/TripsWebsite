@@ -135,6 +135,62 @@ async function procedureReady() {
           $$;
         `,
       },
+      {
+        name: "insert_trip",
+        query: `
+        CREATE OR REPLACE FUNCTION insert_trip(
+          IN input_price INT,
+          IN input_vehicle VARCHAR(300),
+          IN input_duration VARCHAR(300),
+          IN input_description VARCHAR(1500)
+        )
+        RETURNS INT
+        LANGUAGE plpgsql
+        AS $$
+        DECLARE
+          trip_id INT;
+        BEGIN
+          INSERT INTO trips (price, vechicle, duration, description)
+          VALUES (input_price, input_vehicle, input_duration, input_description)
+          RETURNING id INTO trip_id;
+          
+          RETURN trip_id;
+        END;
+        $$;        
+        `,
+      },
+      {
+        name: "insert_includes",
+        query: `
+        CREATE OR REPLACE PROCEDURE insert_includes(
+          IN input_trip_id INT,
+          IN input_description VARCHAR(300)
+        )
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+          INSERT INTO includes (trip_id, description) VALUES (input_trip_id, input_description);
+        END;
+        $$;        
+        `,
+      },
+      {
+        name: "insert_trip_image",
+        query: `
+        CREATE OR REPLACE PROCEDURE insert_trip_image(
+          IN input_id VARCHAR(255),
+          IN input_trip_id INT,
+          IN input_image VARCHAR(300)
+        )
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+          INSERT INTO tripimages (id, trip_id, image) VALUES (input_id, input_trip_id, input_image);
+        END;
+        $$;
+                
+        `,
+      },
       
       
     ];
