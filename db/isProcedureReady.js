@@ -385,6 +385,49 @@ async function procedureReady() {
         $$;
         `,
       },
+      {
+        name: "insert_contactus",
+        query:`CREATE OR REPLACE PROCEDURE insert_contactus(
+          in_name VARCHAR(255),
+          in_mail VARCHAR(255),
+          in_description VARCHAR(600)
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+          INSERT INTO contactus (name, mail, description)
+          VALUES (in_name, in_mail, in_description);
+      END;
+      $$;
+      `},{
+        name: "get_contactus",
+        query:`CREATE OR REPLACE FUNCTION  get_contactus()
+        RETURNS TABLE(
+          id INT,
+          name VARCHAR(255),
+          mail VARCHAR(255),
+          description VARCHAR(600)
+      )
+      AS $$
+      BEGIN
+          RETURN QUERY SELECT * FROM contactus;
+      END;
+      $$
+      LANGUAGE plpgsql;
+      `},{
+        name: "delete_contactus",
+        query:`CREATE OR REPLACE PROCEDURE delete_contactus(
+          in_id INT
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+          DELETE FROM contactus WHERE id = in_id;
+      END;
+      $$;
+      `}
+
+
     ];
 
     let createdCount = 0;

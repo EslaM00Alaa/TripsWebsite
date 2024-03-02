@@ -30,6 +30,7 @@ app.use("/api/classes",require("./routes/classes/classes"))
 app.use("/api/types",require("./routes/typesforClass/types"))
 app.use("/api/blogs",require("./routes/blogs/blog"))
 app.use("/api/trips",require("./routes/trips/trip"))
+app.use("/api/contactus",require("./routes/contactus/contactUs"))
 
 
 

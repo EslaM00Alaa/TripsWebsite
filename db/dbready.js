@@ -59,10 +59,18 @@ async function isReady() {
           description VARCHAR(300) NOT NULL 
           );
         `,
+        `
+        CREATE TABLE IF NOT EXISTS contactus (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          mail VARCHAR(255) NOT NULL ,
+          description VARCHAR(600) NOT NULL 
+          );
+        `
 
     ];
 
-    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes"];
+    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes","contactus"];
 
     let c = 0;
 
