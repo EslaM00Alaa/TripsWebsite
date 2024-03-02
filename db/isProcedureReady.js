@@ -141,6 +141,8 @@ async function procedureReady() {
         CREATE OR REPLACE FUNCTION insert_trip(
           IN input_price INT,
           IN input_vechicle VARCHAR(300),
+          IN input_name VARCHAR(300),
+          IN input_gudinjg VARCHAR(300),
           IN input_duration VARCHAR(300),
           IN input_description VARCHAR(1500)
         )
@@ -150,8 +152,8 @@ async function procedureReady() {
         DECLARE
           trip_id INT;
         BEGIN
-          INSERT INTO trips (price, vechicle, duration, description)
-          VALUES (input_price, input_vechicle, input_duration, input_description)
+          INSERT INTO trips (price,name,vechicle, duration,gudinjg,description)
+          VALUES (input_price,input_name,input_vechicle, input_duration,input_gudinjg ,input_description)
           RETURNING id INTO trip_id;
           
           RETURN trip_id;
@@ -197,8 +199,10 @@ async function procedureReady() {
         CREATE OR REPLACE FUNCTION get_trips()
         RETURNS TABLE (
             id INT,
+            name VARCHAR(300),
             price INT,
             vechicle VARCHAR(300),
+            gudinjg VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
             images VARCHAR[],
@@ -208,13 +212,15 @@ async function procedureReady() {
         BEGIN
             RETURN QUERY
             SELECT 
-                trips.id,
-                trips.price,
-                trips.vechicle,
-                trips.duration,
-                trips.description,
-                array_agg(DISTINCT  tripimages.image) AS images,
-                array_agg(DISTINCT  includes.description) AS inclusion_descriptions
+            trips.id,
+            trips.name,
+            trips.price,
+            trips.vechicle,
+            trips.gudinjg,
+            trips.duration,
+            trips.description,
+            array_agg(DISTINCT tripimages.image) AS images,
+            array_agg(DISTINCT includes.description) AS inclusion_descriptions
             FROM 
                 trips 
             LEFT JOIN 
@@ -235,25 +241,29 @@ async function procedureReady() {
           IN input_trip_id INT
         )
         RETURNS TABLE (
-            id INT,
-            price INT,
-            vechicle VARCHAR(300),
-            duration VARCHAR(300),
-            description VARCHAR(1500),
-            images VARCHAR[],
-            inclusion_descriptions VARCHAR[]
+          id INT,
+          name VARCHAR(300),
+          price INT,
+          vechicle VARCHAR(300),
+          gudinjg VARCHAR(300),
+          duration VARCHAR(300),
+          description VARCHAR(1500),
+          images VARCHAR[],
+          inclusion_descriptions VARCHAR[]
         )
         AS $$
         BEGIN
             RETURN QUERY
             SELECT 
-                trips.id,
-                trips.price,
-                trips.vechicle,
-                trips.duration,
-                trips.description,
-                array_agg(DISTINCT  tripimages.image) AS images,
-                array_agg(DISTINCT  includes.description) AS inclusion_descriptions
+            trips.id,
+            trips.name,
+            trips.price,
+            trips.vechicle,
+            trips.gudinjg,
+            trips.duration,
+            trips.description,
+            array_agg(DISTINCT tripimages.image) AS images,
+            array_agg(DISTINCT includes.description) AS inclusion_descriptions
             FROM 
                 trips 
             LEFT JOIN 
@@ -273,21 +283,25 @@ async function procedureReady() {
         query: `
         CREATE OR REPLACE FUNCTION get_4_trips()
         RETURNS TABLE (
-            id INT,
-            price INT,
-            vehicle VARCHAR(300),
-            duration VARCHAR(300),
-            description VARCHAR(1500),
-            images VARCHAR[],
-            inclusion_descriptions VARCHAR[]
+          id INT,
+          name VARCHAR(300),
+          price INT,
+          vechicle VARCHAR(300),
+          gudinjg VARCHAR(300),
+          duration VARCHAR(300),
+          description VARCHAR(1500),
+          images VARCHAR[],
+          inclusion_descriptions VARCHAR[]
         )
         AS $$
         BEGIN
             RETURN QUERY
             SELECT 
                 trips.id,
+                trips.name,
                 trips.price,
                 trips.vechicle,
+                trips.gudinjg,
                 trips.duration,
                 trips.description,
                 array_agg(DISTINCT tripimages.image) AS images,
@@ -326,13 +340,15 @@ async function procedureReady() {
         BEGIN
             RETURN QUERY
             SELECT 
-                trips.id,
-                trips.price,
-                trips.vechicle,
-                trips.duration,
-                trips.description,
-                array_agg(DISTINCT tripimages.image) AS images,
-                array_agg(DISTINCT includes.description) AS inclusion_descriptions
+            trips.id,
+            trips.name,
+            trips.price,
+            trips.vechicle,
+            trips.gudinjg,
+            trips.duration,
+            trips.description,
+            array_agg(DISTINCT tripimages.image) AS images,
+            array_agg(DISTINCT includes.description) AS inclusion_descriptions
             FROM 
                 trips 
             LEFT JOIN 

@@ -38,9 +38,11 @@ async function isReady() {
       `
         CREATE TABLE IF NOT EXISTS trips (
           id SERIAL PRIMARY KEY,
+          name VARCHAR(300),
           price INT NOT NULL ,
           vechicle VARCHAR(300) ,
-          duration VARCHAR(300)  ,
+          duration VARCHAR(300) ,
+          gudinjg VARCHAR(300),
           description VARCHAR(1500) NOT NULL
         );
         `,

@@ -15,8 +15,8 @@ router.post("/", async (req, res) => {
         if (error) 
             return res.status(400).json({ msg: error.details[0].message });
 
-        const { price, duration, vehicle, description } = req.body;
-        const { insert_trip } = (await client.query("SELECT insert_trip($1, $2, $3, $4);", [price, vehicle, duration, description])).rows[0];
+        const { price,name,duration, vehicle,gudinjg,description } = req.body;
+        const { insert_trip } = (await client.query("SELECT insert_trip($1, $2, $3, $4,$5,$6);", [price, vehicle,name,gudinjg,duration, description])).rows[0];
         res.json({ insert_trip });
     } catch (error) {
         console.error("Error creating trip:", error);
