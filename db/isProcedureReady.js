@@ -159,8 +159,43 @@ async function procedureReady() {
           RETURN trip_id;
         END;
         $$;        
-        `,
+        `
       },
+      {
+        name: "update_trip",
+        query: `
+          CREATE OR REPLACE FUNCTION update_trip ( 
+            IN input_trip_id INT,
+            IN input_price INT,
+            IN input_vehicle VARCHAR(300),
+            IN input_name VARCHAR(300),
+            IN input_guiding VARCHAR(300),
+            IN input_duration VARCHAR(300),
+            IN input_description VARCHAR(1500)
+          )
+          RETURNS VOID
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            UPDATE trips 
+            SET 
+              price = input_price,
+              vechicle = input_vehicle,
+              name = input_name,
+              gudinjg = input_guiding,
+              duration = input_duration,
+              description = input_description
+            WHERE id = input_trip_id;
+      
+            IF FOUND THEN
+              RETURN;
+            ELSE
+              RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
+            END IF;
+          END;
+          $$;        
+        `
+          },      
       {
         name: "insert_includes",
         query: `
@@ -276,6 +311,50 @@ async function procedureReady() {
         END;
         $$ LANGUAGE plpgsql;
 
+        `,
+      },
+      {
+        name: "Search",
+        query: `
+        CREATE OR REPLACE FUNCTION Search(
+          IN input_name VARCHAR(300)
+      )
+      RETURNS TABLE (
+          id INT,
+          name VARCHAR(300),
+          price INT,
+          vechicle VARCHAR(300),
+          gudinjg VARCHAR(300),
+          duration VARCHAR(300),
+          description VARCHAR(1500),
+          images VARCHAR[],
+          inclusion_descriptions VARCHAR[]
+      )
+      AS $$
+      BEGIN
+          RETURN QUERY
+          SELECT 
+              trips.id,
+              trips.name,
+              trips.price,
+              trips.vechicle,
+              trips.gudinjg, 
+              trips.duration,
+              trips.description,
+              array_agg(DISTINCT tripimages.image) AS images,
+              array_agg(DISTINCT includes.description) AS inclusion_descriptions
+          FROM 
+              trips 
+          LEFT JOIN 
+              tripimages ON trips.id = tripimages.trip_id
+          LEFT JOIN 
+              includes ON trips.id = includes.trip_id
+          WHERE   
+              (input_name IS NULL OR trips.name LIKE '%' || input_name || '%')  
+          GROUP BY 
+              trips.id;
+      END;
+      $$ LANGUAGE plpgsql;      
         `,
       },
       {
@@ -425,7 +504,53 @@ async function procedureReady() {
           DELETE FROM contactus WHERE id = in_id;
       END;
       $$;
-      `}
+      `},
+      {
+        name: "register",
+        query: `
+          CREATE OR REPLACE FUNCTION register(
+            IN input_name VARCHAR(255),
+            IN input_mail VARCHAR(255),
+            IN input_pass VARCHAR(255)
+          )
+          RETURNS INTEGER
+          LANGUAGE plpgsql
+          AS $$
+          DECLARE
+            new_id INTEGER;
+          BEGIN
+            INSERT INTO accounts (name, mail, pass) VALUES (input_name, input_mail, input_pass)
+            RETURNING id INTO new_id;
+            RETURN new_id;
+          END;
+          $$;
+        `
+      },
+      {
+        name: "get_user",
+        query: `
+          CREATE OR REPLACE FUNCTION get_user(
+            IN input_mail VARCHAR(255)
+          )
+          RETURNS TABLE (
+            id INTEGER,
+            name VARCHAR(255),
+            mail VARCHAR(255),
+            pass VARCHAR(255),
+            role VARCHAR(255)
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+            RETURN QUERY
+            SELECT a.id, a.name, a.mail, a.pass, a.role
+            FROM accounts a
+            WHERE a.mail = input_mail;
+          END;
+          $$;
+        `
+      }
+      
 
 
     ];

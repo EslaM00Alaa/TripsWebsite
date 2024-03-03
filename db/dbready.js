@@ -66,11 +66,21 @@ async function isReady() {
           mail VARCHAR(255) NOT NULL ,
           description VARCHAR(600) NOT NULL 
           );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS accounts (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          mail VARCHAR(255) NOT NULL UNIQUE ,
+          role VARCHAR(255) NOT NULL DEFAULT 'user',
+          pass VARCHAR(255) NOT NULL ,
+          verify_code VARCHAR(255)
+        );
         `
 
     ];
 
-    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes","contactus"];
+    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes","contactus","accounts"];
 
     let c = 0;
 

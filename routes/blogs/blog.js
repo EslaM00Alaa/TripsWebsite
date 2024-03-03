@@ -4,6 +4,7 @@ const client = require("../../db/db");
 const photoUpload = require("../../utils/uploadimage.js");
 const { cloadinaryUploadImage, cloadinaryRemoveImage } = require("../../utils/uploadimageCdn.js");
 const validateBlog = require('../../models/blog.js');
+const isAdmin = require('../../middleware/isAdmin.js');
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ const insertBlog = async (description, date, imagePath) => {
   }
 }
 
-router.post("/", photoUpload.single("image"), async (req, res) => {
+router.post("/",isAdmin,photoUpload.single("image"), async (req, res) => {
   try {
     const { error } = validateBlog(req.body);
     if (error) return res.status(400).json({ msg: error.details[0].message });

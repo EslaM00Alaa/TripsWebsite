@@ -5,11 +5,12 @@ const client = require("../../db/db");
 const photoUpload = require("../../utils/uploadimage.js");
 const { cloadinaryUploadImage, cloadinaryRemoveImage } = require("../../utils/uploadimageCdn.js");
 const validateTrip = require('../../models/trip.js');
+const isAdmin = require('../../middleware/isAdmin.js');
 
 const router = express.Router();
 
 
-router.post("/", async (req, res) => {
+router.post("/",isAdmin,async (req, res) => {
     try {
         const { error } = validateTrip(req.body);
         if (error) 
@@ -23,6 +24,32 @@ router.post("/", async (req, res) => {
         res.status(500).json({ msg: "Internal Server Error" });
     }
 });
+
+router.put("/", isAdmin, async (req, res) => {
+    try {
+      const { error } = validateTrip(req.body);
+      if (error) {
+        return res.status(400).json({ msg: error.details[0].message });
+      }
+  
+      const { id, price, name, duration, vehicle, gudinjg, description } = req.body;
+  
+      // Update the trip in the database
+      const result = await client.query("SELECT update_trip($1, $2, $3, $4, $5, $6, $7)", [id, price, name, duration, vehicle, gudinjg, description]);
+  
+      // Check if the trip was successfully updated
+      if (result.rows[0].update_trip !== null) {
+        return res.json({ msg: "Trip updated successfully" });
+      } else {
+        return res.status(404).json({ msg: "Trip not found" });
+      }
+    } catch (error) {
+      console.error("Update trip error:", error);
+      return res.status(500).json({ msg: "Internal Server Error" });
+    }
+  });
+  
+  
 
 // Route to add inclusion to a trip
 router.post("/includes", async (req, res) => {
@@ -72,6 +99,20 @@ router.get("/trip/:id", async (req, res) => {
         console.error("Error fetching all trips:", error);
         res.status(500).json({ msg: "Internal Server Error" });
     }
+}); 
+
+
+/// not used 
+
+router.get("/search/:searchKey", async (req, res) => {
+    try {
+        const result = await client.query("SELECT * FROM Search($1);",[req.params.searchKey]);
+        const trips = result.rows;
+        res.json({ trips });
+    } catch (error) {
+        console.error("Error fetching all trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
 });
 
 router.get("/all", async (req, res) => {
@@ -110,7 +151,7 @@ router.get("/random3", async (req, res) => {
 });
 
 
-router.delete("/trip/:id", async (req, res) => {
+router.delete("/trip/:id",isAdmin,async (req, res) => {
     try {
         await client.query("CALL delete_trip($1);",[req.params.id]);
         res.json({ msg : "done"});
@@ -119,9 +160,6 @@ router.delete("/trip/:id", async (req, res) => {
         res.status(500).json({ msg: "Internal Server Error" });
     }
 });
-
-
-
 
 
 
