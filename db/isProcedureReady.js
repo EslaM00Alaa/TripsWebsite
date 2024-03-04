@@ -1,3 +1,4 @@
+const { name } = require("body-parser");
 const client = require("./db");
 
 async function procedureReady() {
@@ -159,7 +160,7 @@ async function procedureReady() {
           RETURN trip_id;
         END;
         $$;        
-        `
+        `,
       },
       {
         name: "update_trip",
@@ -194,8 +195,8 @@ async function procedureReady() {
             END IF;
           END;
           $$;        
-        `
-          },      
+        `,
+      },
       {
         name: "insert_includes",
         query: `
@@ -256,6 +257,33 @@ async function procedureReady() {
             trips.description,
             array_agg(DISTINCT tripimages.image) AS images,
             array_agg(DISTINCT includes.description) AS inclusion_descriptions
+            FROM 
+                trips 
+            LEFT JOIN 
+                tripimages ON trips.id = tripimages.trip_id
+            LEFT JOIN 
+                includes ON trips.id = includes.trip_id
+            GROUP BY 
+                trips.id;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        `,
+      },
+      {
+        name: "trips_names",
+        query: `
+        CREATE OR REPLACE FUNCTION trips_names()
+        RETURNS TABLE (
+            id INT,
+            name VARCHAR(300)
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+            trips.id,
+            trips.name
             FROM 
                 trips 
             LEFT JOIN 
@@ -466,7 +494,7 @@ async function procedureReady() {
       },
       {
         name: "insert_contactus",
-        query:`CREATE OR REPLACE PROCEDURE insert_contactus(
+        query: `CREATE OR REPLACE PROCEDURE insert_contactus(
           in_name VARCHAR(255),
           in_mail VARCHAR(255),
           in_description VARCHAR(600)
@@ -478,9 +506,11 @@ async function procedureReady() {
           VALUES (in_name, in_mail, in_description);
       END;
       $$;
-      `},{
+      `,
+      },
+      {
         name: "get_contactus",
-        query:`CREATE OR REPLACE FUNCTION  get_contactus()
+        query: `CREATE OR REPLACE FUNCTION  get_contactus()
         RETURNS TABLE(
           id INT,
           name VARCHAR(255),
@@ -493,9 +523,11 @@ async function procedureReady() {
       END;
       $$
       LANGUAGE plpgsql;
-      `},{
+      `,
+      },
+      {
         name: "delete_contactus",
-        query:`CREATE OR REPLACE PROCEDURE delete_contactus(
+        query: `CREATE OR REPLACE PROCEDURE delete_contactus(
           in_id INT
       )
       LANGUAGE plpgsql
@@ -504,7 +536,8 @@ async function procedureReady() {
           DELETE FROM contactus WHERE id = in_id;
       END;
       $$;
-      `},
+      `,
+      },
       {
         name: "register",
         query: `
@@ -524,7 +557,7 @@ async function procedureReady() {
             RETURN new_id;
           END;
           $$;
-        `
+        `,
       },
       {
         name: "get_user",
@@ -548,11 +581,120 @@ async function procedureReady() {
             WHERE a.mail = input_mail;
           END;
           $$;
+        `,
+      },
+      {
+        name: "insert_order",
+        query: `
+          CREATE OR REPLACE FUNCTION insert_order(
+            IN p_user_id INT,
+            IN p_name VARCHAR(255),
+            IN p_trip_id INT,
+            IN p_number_of_person INT,
+            IN p_arrivaldate DATE,
+            IN p_departuredate DATE,
+            IN p_flight_number INT,
+            IN p_hotel_name VARCHAR(255),
+            IN p_room_name VARCHAR(255)
+          )
+          RETURNS INT
+          LANGUAGE plpgsql
+          AS $$
+          DECLARE
+            inserted_id INT;
+          BEGIN
+              INSERT INTO orders (user_id, name, trip_id, number_of_person, arrivaldate, departuredate, flight_number, hotel_name, room_name)
+              VALUES (p_user_id, p_name, p_trip_id, p_number_of_person, p_arrivaldate, p_departuredate, p_flight_number, p_hotel_name, p_room_name)
+              RETURNING id INTO inserted_id;
+              
+              RETURN inserted_id;
+          END;
+          $$;
+        `
+          },      
+      {
+        name: "get_paid_orders",
+        query: `
+          CREATE OR REPLACE FUNCTION get_paid_orders()
+          RETURNS TABLE (
+              order_id INT,
+              user_id INT,
+              order_name VARCHAR(255),
+              trip_name VARCHAR(255),
+              number_of_person INT,
+              arrivaldate DATE,
+              departuredate DATE,
+              flight_number INT,
+              hotel_name VARCHAR(255),
+              room_name VARCHAR(255),
+              paid BOOLEAN
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+              RETURN QUERY 
+              SELECT o.id AS order_id, o.user_id, o.name AS order_name, t.name AS trip_name, o.number_of_person, o.arrivaldate, o.departuredate, o.flight_number, o.hotel_name, o.room_name, o.paid 
+              FROM orders o 
+              JOIN trips t ON o.trip_id = t.id  
+              WHERE o.paid = TRUE;
+          END;
+          $$;
+        `
+      },
+      
+      {
+        name: "paid_order",
+        query: `
+          CREATE OR REPLACE PROCEDURE paid_order(
+            IN p_user_id INT,
+            IN p_order_id INT
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+              UPDATE orders SET paid = TRUE WHERE orders.user_id = p_user_id AND orders.id = p_order_id;
+          END;
+          $$;
+        `
+      },
+      {
+        name: "check_total",
+        query: `
+          CREATE OR REPLACE FUNCTION check_total(
+            IN p_user_id INT,
+            IN p_order_id INT
+          )
+          RETURNS INT 
+          LANGUAGE plpgsql
+          AS $$
+          DECLARE
+            total INT;
+          BEGIN
+            SELECT o.number_of_person * t.price INTO total
+            FROM orders o 
+            JOIN trips t ON o.trip_id = t.id 
+            WHERE o.id = p_order_id AND o.user_id = p_user_id;
+            
+            RETURN total;
+          END;
+          $$;
+        `
+      },       
+      {
+        name: "delete_order",
+        query: `
+          CREATE OR REPLACE PROCEDURE delete_order(
+            IN p_order_id INT
+          )
+          LANGUAGE plpgsql
+          AS $$
+          BEGIN
+              DELETE FROM orders WHERE orders.id = p_order_id;
+          END;
+          $$;
         `
       }
       
-
-
     ];
 
     let createdCount = 0;

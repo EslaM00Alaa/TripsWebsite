@@ -76,11 +76,27 @@ async function isReady() {
           pass VARCHAR(255) NOT NULL ,
           verify_code VARCHAR(255)
         );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS orders (
+          id SERIAL PRIMARY KEY,
+          user_id INT REFERENCES accounts(id) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          trip_id INT REFERENCES trips(id) NOT NULL,
+          number_of_person INT NOT NULL,
+          arrivaldate DATE NOT NULL,
+          departuredate DATE NOT NULL,
+          flight_number INT NOT NULL,
+          hotel_name VARCHAR(255) NOT NULL,
+          room_name VARCHAR(255) NOT NULL,
+          paid BOOLEAN DEFAULT FALSE
+      );
+      
         `
 
     ];
 
-    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes","contactus","accounts"];
+    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes","contactus","accounts","orders"];
 
     let c = 0;
 

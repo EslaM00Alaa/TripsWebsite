@@ -125,6 +125,16 @@ router.get("/all", async (req, res) => {
         res.status(500).json({ msg: "Internal Server Error" });
     }
 });
+router.get("/names", async (req, res) => {
+    try {
+        const result = await client.query("SELECT * FROM trips_names();");
+        const trips = result.rows;
+        res.json({ trips });
+    } catch (error) {
+        console.error("Error fetching all trips:", error);
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
 
 router.get("/random4", async (req, res) => {
     try {

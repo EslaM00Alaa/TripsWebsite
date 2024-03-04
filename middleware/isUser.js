@@ -8,8 +8,8 @@ const isUser = async (req, res, next) => {
       const { id, mail ,role } = verifyToken(token);
       const sqlQuery = `SELECT role FROM accounts WHERE mail = $1 AND id = $2;`;
       const result = await client.query(sqlQuery, [mail, id]);
-      if (result.rows[0].role==role) {
-        req.body.mail = mail;
+      if (result.rows[0].role=="user") {
+        req.body.user_id = id ;
         next();
       } else {
         return res.status(403).json({ msg: "You do not have permission to perform this action." });

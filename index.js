@@ -26,12 +26,13 @@ app.use(helmet());
 app.use(cors());
 
 
-app.use("/api/classes",require("./routes/classes/classes"))
-app.use("/api/types",require("./routes/typesforClass/types"))
-app.use("/api/blogs",require("./routes/blogs/blog"))
-app.use("/api/trips",require("./routes/trips/trip"))
-app.use("/api/contactus",require("./routes/contactus/contactUs"))
-app.use("/api/account",require("./routes/account/auth"))
+app.use("/api/classes",require("./routes/classes/classes"));
+app.use("/api/types",require("./routes/typesforClass/types"));
+app.use("/api/blogs",require("./routes/blogs/blog"));
+app.use("/api/trips",require("./routes/trips/trip"));
+app.use("/api/contactus",require("./routes/contactus/contactUs"));
+app.use("/api/account",require("./routes/account/auth"));
+app.use("/api/orders",require("./routes/order/order"));
 
 
 
