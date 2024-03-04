@@ -172,6 +172,47 @@ router.delete("/trip/:id",isAdmin,async (req, res) => {
 });
 
 
+router.get("/images/:id", async (req, res) => {
+    try {
+        let trip_id = req.params.id;
+        let result = await client.query("SELECT * FROM get_images($1);", [trip_id]);
+        res.json(result.rows); // Return only the rows
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
+
+router.delete("/images/:id", async (req, res) => {
+    try {
+        let img_id = req.params.id;
+        await client.query("CALL delete_image($1);", [img_id]);
+        res.json({ msg: "Image deleted successfully" }); // Return success message
+        await cloadinaryRemoveImage(img_id);
+    } catch (error) {
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
+
+router.get("/include/:id", async (req, res) => {
+    try {
+        let trip_id = req.params.id;
+        let result = await client.query("SELECT * FROM get_includes($1);", [trip_id]);
+        res.json(result.rows); // Return only the rows
+    } catch (error) {
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
+
+router.delete("/include/:id", async (req, res) => {
+    try {
+        let include_id = req.params.id;
+        await client.query("CALL deleteinclude($1);", [include_id]);
+        res.json({ msg: "Include deleted successfully" }); // Return success message
+    } catch (error) {
+        res.status(500).json({ msg: "Internal Server Error" });
+    }
+});
 
 
 

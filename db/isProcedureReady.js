@@ -268,8 +268,80 @@ async function procedureReady() {
         END;
         $$ LANGUAGE plpgsql;
 
-        `,
+        `
       },
+      {
+        name: "get_images",
+        query: `
+          CREATE OR REPLACE FUNCTION get_images(
+            IN input_trip_id INT
+          )
+          RETURNS TABLE (
+              id VARCHAR(255), -- Change data type to match tripimages.id
+              image VARCHAR(300)
+          )
+          AS $$
+          BEGIN
+              RETURN QUERY
+              SELECT 
+              tripimages.id,
+              tripimages.image
+              FROM 
+              tripimages 
+              WHERE tripimages.trip_id = input_trip_id;
+          END;
+          $$ LANGUAGE plpgsql;
+        `
+      },      
+      {
+        name: "delete_image",
+        query: `
+          CREATE OR REPLACE PROCEDURE delete_image(
+            IN input_image_id VARCHAR(255)
+          )
+          AS $$
+          BEGIN
+            DELETE FROM tripimages WHERE id = input_image_id;
+          END;
+          $$ LANGUAGE plpgsql;
+        `
+      },   
+      {
+        name: "get_includes",
+        query: `
+          CREATE OR REPLACE FUNCTION get_includes(
+            IN input_trip_id INT
+          )
+          RETURNS TABLE (
+              id INT,
+              description VARCHAR(300)
+          )
+          AS $$
+          BEGIN
+              RETURN QUERY
+              SELECT 
+              includes.id,
+              includes.description
+              FROM 
+              includes 
+              WHERE includes.trip_id = input_trip_id;
+          END;
+          $$ LANGUAGE plpgsql;
+        `
+      },
+      {
+        name: "deleteinclude",
+        query: `
+          CREATE OR REPLACE PROCEDURE deleteinclude(
+            IN input_include_id INT
+          )
+          AS $$
+          BEGIN
+            DELETE FROM includes WHERE id = input_include_id;
+          END;
+          $$ LANGUAGE plpgsql;
+        `
+      },      
       {
         name: "trips_names",
         query: `
@@ -295,7 +367,7 @@ async function procedureReady() {
         END;
         $$ LANGUAGE plpgsql;
 
-        `,
+        `
       },
       {
         name: "get_trip",
