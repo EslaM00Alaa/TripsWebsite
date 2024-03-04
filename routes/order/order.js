@@ -89,6 +89,7 @@ router.delete("/:id",isAdmin,async(req,res)=>{
     try {
         let id = req.params.id;
         await client.query("CALL delete_order($1);",[id]);
+        res.json({msg:"order deleted"})
     } catch (error) {
         return res.status(404).json({ msg: error.message });
     }
