@@ -160,41 +160,41 @@ async function procedureReady() {
         $$;
         `
       },
-      // {
-      //   name: "update_trip",
-      //   query: `
-      //     CREATE OR REPLACE FUNCTION update_trip ( 
-      //       IN input_trip_id INT,
-      //       IN input_price INT,
-      //       IN input_vehicle VARCHAR(300),
-      //       IN input_name VARCHAR(300),
-      //       IN input_guiding VARCHAR(300),
-      //       IN input_duration VARCHAR(300),
-      //       IN input_description VARCHAR(1500)
-      //     )
-      //     RETURNS VOID
-      //     LANGUAGE plpgsql
-      //     AS $$
-      //     BEGIN
-      //       UPDATE trips 
-      //       SET 
-      //         price = input_price,
-      //         vechicle = input_vehicle,
-      //         name = input_name,
-      //         gudinjg = input_guiding,
-      //         duration = input_duration,
-      //         description = input_description
-      //       WHERE id = input_trip_id;
+      {
+        name: "update_trip",
+        query: `
+        CREATE OR REPLACE FUNCTION update_trip ( 
+          IN input_trip_id VARCHAR(255),
+          IN input_price INT,
+          IN input_vehicle VARCHAR(300),
+          IN input_name VARCHAR(300),
+          IN input_guiding VARCHAR(300),
+          IN input_duration VARCHAR(300),
+          IN input_description VARCHAR(1500)
+      )
+      RETURNS VOID
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+          UPDATE trips 
+          SET 
+              price = input_price,
+              vehicle = input_vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
+              name = input_name,
+              gudinjg = input_guiding,
+              duration = input_duration,
+              description = input_description
+          WHERE id = input_trip_id;
       
-      //       IF FOUND THEN
-      //         RETURN;
-      //       ELSE
-      //         RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
-      //       END IF;
-      //     END;
-      //     $$;        
-      //   `
-      // },
+          IF FOUND THEN
+              RETURN;
+          ELSE
+              RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
+          END IF;
+      END;
+      $$;              
+        `
+      },
       {
         name: "get_trips",
         query: `

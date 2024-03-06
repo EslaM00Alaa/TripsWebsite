@@ -39,29 +39,29 @@ router.post("/",isAdmin, photoUpload.single("image"),async (req, res) => {
 });
 
 
-// router.put("/", isAdmin, async (req, res) => {
-//     try {
-//       const { error } = validateTrip(req.body);
-//       if (error) {
-//         return res.status(400).json({ msg: error.details[0].message });
-//       }
+router.put("/", isAdmin, async (req, res) => {
+    try {
+      const { error } = validateTrip(req.body);
+      if (error) {
+        return res.status(400).json({ msg: error.details[0].message });
+      }
   
-//       const { id, price, name, duration, vehicle, gudinjg, description } = req.body;
+      const { id, price, name, duration, vehicle, gudinjg, description } = req.body;
   
-//       // Update the trip in the database
-//       const result = await client.query("SELECT update_trip($1, $2, $3, $4, $5, $6, $7)", [id, price, name, duration, vehicle, gudinjg, description]);
+      // Update the trip in the database
+      const result = await client.query("SELECT update_trip($1, $2, $3, $4, $5, $6, $7)", [id, price, name, duration, vehicle, gudinjg, description]);
   
-//       // Check if the trip was successfully updated
-//       if (result.rows[0].update_trip !== null) {
-//         return res.json({ msg: "Trip updated successfully" });
-//       } else {
-//         return res.status(404).json({ msg: "Trip not found" });
-//       }
-//     } catch (error) {
-//       console.error("Update trip error:", error);
-//       return res.status(500).json({ msg: "Internal Server Error" });
-//     }
-//   });
+      // Check if the trip was successfully updated
+      if (result.rows[0].update_trip !== null) {
+        return res.json({ msg: "Trip updated successfully" });
+      } else {
+        return res.status(404).json({ msg: "Trip not found" });
+      }
+    } catch (error) {
+      console.error("Update trip error:", error);
+      return res.status(500).json({ msg: "Internal Server Error" });
+    }
+  });
   
   
 
