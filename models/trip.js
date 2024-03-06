@@ -3,7 +3,7 @@ const joi = require("joi");
 function validateTrip(obj)
 {
     const schema = joi.object({
-        id:joi.number(),
+        id:joi.string(),
         price:joi.number().required(),
         name:joi.string().trim().required(),
         duration:joi.string().trim().required(),

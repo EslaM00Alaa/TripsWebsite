@@ -34,31 +34,19 @@ async function isReady() {
           description VARCHAR(1000) NOT NULL,
           date VARCHAR(255) NOT NULL 
         );
-        `,
-      `
-        CREATE TABLE IF NOT EXISTS trips (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(300),
-          price INT NOT NULL ,
-          vechicle VARCHAR(300) ,
-          duration VARCHAR(300) ,
-          gudinjg VARCHAR(300),
-          description VARCHAR(1500) NOT NULL
-        );
-        `,
-        `
-        CREATE TABLE IF NOT EXISTS tripimages (
-          id VARCHAR(255) PRIMARY KEY,
-          trip_id INT REFERENCES trips (id) NOT NULL ,
-          image VARCHAR(300) NOT NULL 
-          );
-        `,  `
-        CREATE TABLE IF NOT EXISTS includes (
-          id SERIAL PRIMARY KEY,
-          trip_id INT REFERENCES trips (id) NOT NULL ,
-          description VARCHAR(300) NOT NULL 
-          );
-        `,
+      `,
+          `
+          CREATE TABLE IF NOT EXISTS trips (
+            id VARCHAR(255) PRIMARY KEY,
+            name VARCHAR(300),
+            price INT NOT NULL,
+            vehicle VARCHAR(300),
+            duration VARCHAR(300),
+            gudinjg VARCHAR(300),
+            description VARCHAR(1500) NOT NULL,
+            image VARCHAR(300) NOT NULL
+        );        
+          `,
         `
         CREATE TABLE IF NOT EXISTS contactus (
           id SERIAL PRIMARY KEY,
@@ -82,7 +70,7 @@ async function isReady() {
           id SERIAL PRIMARY KEY,
           user_id INT REFERENCES accounts(id) NOT NULL,
           name VARCHAR(255) NOT NULL,
-          trip_id INT REFERENCES trips(id) NOT NULL,
+          trip_id VARCHAR(255) REFERENCES trips(id) NOT NULL,
           number_of_person INT NOT NULL,
           arrivaldate DATE NOT NULL,
           departuredate DATE NOT NULL,
@@ -96,7 +84,7 @@ async function isReady() {
 
     ];
 
-    const tablesToCheck = ["classes", "types", "images", "blogs","trips","tripimages","includes","contactus","accounts","orders"];
+    const tablesToCheck = ["classes", "types", "images", "blogs","trips","contactus","accounts","orders"];
 
     let c = 0;
 

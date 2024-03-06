@@ -10,84 +10,62 @@ const isAdmin = require('../../middleware/isAdmin.js');
 const router = express.Router();
 
 
-router.post("/",isAdmin,async (req, res) => {
+router.post("/",isAdmin, photoUpload.single("image"),async (req, res) => {
     try {
-        const { error } = validateTrip(req.body);
-        if (error) 
-            return res.status(400).json({ msg: error.details[0].message });
 
-        const { price,name,duration, vehicle,gudinjg,description } = req.body;
-        const { insert_trip } = (await client.query("SELECT insert_trip($1, $2, $3, $4,$5,$6);", [price, vehicle,name,gudinjg,duration, description])).rows[0];
-        res.json({ insert_trip });
-    } catch (error) {
-        console.error("Error creating trip:", error);
-        res.status(500).json({ msg: "Internal Server Error" });
-    }
-});
-
-router.put("/", isAdmin, async (req, res) => {
-    try {
-      const { error } = validateTrip(req.body);
-      if (error) {
-        return res.status(400).json({ msg: error.details[0].message });
-      }
-  
-      const { id, price, name, duration, vehicle, gudinjg, description } = req.body;
-  
-      // Update the trip in the database
-      const result = await client.query("SELECT update_trip($1, $2, $3, $4, $5, $6, $7)", [id, price, name, duration, vehicle, gudinjg, description]);
-  
-      // Check if the trip was successfully updated
-      if (result.rows[0].update_trip !== null) {
-        return res.json({ msg: "Trip updated successfully" });
-      } else {
-        return res.status(404).json({ msg: "Trip not found" });
-      }
-    } catch (error) {
-      console.error("Update trip error:", error);
-      return res.status(500).json({ msg: "Internal Server Error" });
-    }
-  });
-  
-  
-
-// Route to add inclusion to a trip
-router.post("/includes", async (req, res) => {
-    try {
-        const { trip_id, description } = req.body;
-        await client.query("CALL insert_includes ($1, $2);", [trip_id, description]);
-        res.json({ msg: "Inclusion added to trip." });
-    } catch (error) {
-        console.error("Error adding inclusion to trip:", error);
-        res.status(500).json({ msg: "Internal Server Error" });
-    }
-});
-
-// Route to add image to a trip
-router.post("/image", photoUpload.single("image"), async (req, res) => {
-    try {
         if (!req.file) {
             return res.status(400).json({ message: "You must send an image" });
         }
 
         const imagePath = path.join(__dirname, `../../images/${req.file.filename}`);
-        const { trip_id } = req.body;
         const uploadResult = await cloadinaryUploadImage(imagePath);
         const { public_id, secure_url } = uploadResult;
 
-        await client.query("CALL insert_trip_image($1, $2, $3);", [public_id, trip_id, secure_url]);
-        res.json({ msg: "Image added to trip." });
-
+        const { error } = validateTrip(req.body);
+        if (error) 
+            return res.status(400).json({ msg: error.details[0].message });
+        const { price,name,duration, vehicle,gudinjg,description } = req.body;
+        await client.query("CALL insert_trip($1, $2, $3, $4,$5,$6,$7,$8);", [public_id,price, vehicle,name,gudinjg,duration, description,secure_url]);
+        res.json({msg:"One tripe Inserted "});
         fs.unlink(imagePath, (err) => {
             if (err) {
                 console.error("Error deleting image:", err);
             }
         });
     } catch (error) {
-        console.error("Error adding image to trip:", error);
+        console.error("Error creating trip:", error);
         res.status(500).json({ msg: "Internal Server Error" });
     }
 });
+
+
+// router.put("/", isAdmin, async (req, res) => {
+//     try {
+//       const { error } = validateTrip(req.body);
+//       if (error) {
+//         return res.status(400).json({ msg: error.details[0].message });
+//       }
+  
+//       const { id, price, name, duration, vehicle, gudinjg, description } = req.body;
+  
+//       // Update the trip in the database
+//       const result = await client.query("SELECT update_trip($1, $2, $3, $4, $5, $6, $7)", [id, price, name, duration, vehicle, gudinjg, description]);
+  
+//       // Check if the trip was successfully updated
+//       if (result.rows[0].update_trip !== null) {
+//         return res.json({ msg: "Trip updated successfully" });
+//       } else {
+//         return res.status(404).json({ msg: "Trip not found" });
+//       }
+//     } catch (error) {
+//       console.error("Update trip error:", error);
+//       return res.status(500).json({ msg: "Internal Server Error" });
+//     }
+//   });
+  
+  
+
+  
 
 
 router.get("/trip/:id", async (req, res) => {

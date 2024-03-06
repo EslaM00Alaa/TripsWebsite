@@ -139,338 +139,75 @@ async function procedureReady() {
       {
         name: "insert_trip",
         query: `
-        CREATE OR REPLACE FUNCTION insert_trip(
+        CREATE OR REPLACE PROCEDURE insert_trip(
+          IN input_id VARCHAR(255),
           IN input_price INT,
-          IN input_vechicle VARCHAR(300),
+          IN input_vehicle VARCHAR(300),
           IN input_name VARCHAR(300),
           IN input_gudinjg VARCHAR(300),
           IN input_duration VARCHAR(300),
-          IN input_description VARCHAR(1500)
+          IN input_description VARCHAR(1500),
+          IN input_image VARCHAR(300)
         )
-        RETURNS INT
         LANGUAGE plpgsql
         AS $$
         DECLARE
           trip_id INT;
         BEGIN
-          INSERT INTO trips (price,name,vechicle, duration,gudinjg,description)
-          VALUES (input_price,input_name,input_vechicle, input_duration,input_gudinjg ,input_description)
-          RETURNING id INTO trip_id;
-          
-          RETURN trip_id;
-        END;
-        $$;        
-        `,
-      },
-      {
-        name: "update_trip",
-        query: `
-          CREATE OR REPLACE FUNCTION update_trip ( 
-            IN input_trip_id INT,
-            IN input_price INT,
-            IN input_vehicle VARCHAR(300),
-            IN input_name VARCHAR(300),
-            IN input_guiding VARCHAR(300),
-            IN input_duration VARCHAR(300),
-            IN input_description VARCHAR(1500)
-          )
-          RETURNS VOID
-          LANGUAGE plpgsql
-          AS $$
-          BEGIN
-            UPDATE trips 
-            SET 
-              price = input_price,
-              vechicle = input_vehicle,
-              name = input_name,
-              gudinjg = input_guiding,
-              duration = input_duration,
-              description = input_description
-            WHERE id = input_trip_id;
-      
-            IF FOUND THEN
-              RETURN;
-            ELSE
-              RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
-            END IF;
-          END;
-          $$;        
-        `,
-      },
-      {
-        name: "insert_includes",
-        query: `
-        CREATE OR REPLACE PROCEDURE insert_includes(
-          IN input_trip_id INT,
-          IN input_description VARCHAR(300)
-        )
-        LANGUAGE plpgsql
-        AS $$
-        BEGIN
-          INSERT INTO includes (trip_id, description) VALUES (input_trip_id, input_description);
-        END;
-        $$;        
-        `,
-      },
-      {
-        name: "insert_trip_image",
-        query: `
-        CREATE OR REPLACE PROCEDURE insert_trip_image(
-          IN input_id VARCHAR(255),
-          IN input_trip_id INT,
-          IN input_image VARCHAR(300)
-        )
-        LANGUAGE plpgsql
-        AS $$
-        BEGIN
-          INSERT INTO tripimages (id, trip_id, image) VALUES (input_id, input_trip_id, input_image);
+          INSERT INTO trips (id, price, name, vehicle, duration, gudinjg, description, image)
+          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_gudinjg, input_description, input_image);
         END;
         $$;
-                
-        `,
+        `
       },
+      // {
+      //   name: "update_trip",
+      //   query: `
+      //     CREATE OR REPLACE FUNCTION update_trip ( 
+      //       IN input_trip_id INT,
+      //       IN input_price INT,
+      //       IN input_vehicle VARCHAR(300),
+      //       IN input_name VARCHAR(300),
+      //       IN input_guiding VARCHAR(300),
+      //       IN input_duration VARCHAR(300),
+      //       IN input_description VARCHAR(1500)
+      //     )
+      //     RETURNS VOID
+      //     LANGUAGE plpgsql
+      //     AS $$
+      //     BEGIN
+      //       UPDATE trips 
+      //       SET 
+      //         price = input_price,
+      //         vechicle = input_vehicle,
+      //         name = input_name,
+      //         gudinjg = input_guiding,
+      //         duration = input_duration,
+      //         description = input_description
+      //       WHERE id = input_trip_id;
+      
+      //       IF FOUND THEN
+      //         RETURN;
+      //       ELSE
+      //         RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
+      //       END IF;
+      //     END;
+      //     $$;        
+      //   `
+      // },
       {
         name: "get_trips",
         query: `
         CREATE OR REPLACE FUNCTION get_trips()
         RETURNS TABLE (
-            id INT,
+            id VARCHAR(255),
             name VARCHAR(300),
             price INT,
-            vechicle VARCHAR(300),
+            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
             gudinjg VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
-            images VARCHAR[],
-            inclusion_descriptions VARCHAR[]
-        )
-        AS $$
-        BEGIN
-            RETURN QUERY
-            SELECT 
-            trips.id,
-            trips.name,
-            trips.price,
-            trips.vechicle,
-            trips.gudinjg,
-            trips.duration,
-            trips.description,
-            array_agg(DISTINCT tripimages.image) AS images,
-            array_agg(DISTINCT includes.description) AS inclusion_descriptions
-            FROM 
-                trips 
-            LEFT JOIN 
-                tripimages ON trips.id = tripimages.trip_id
-            LEFT JOIN 
-                includes ON trips.id = includes.trip_id
-            GROUP BY 
-                trips.id;
-        END;
-        $$ LANGUAGE plpgsql;
-
-        `
-      },
-      {
-        name: "get_images",
-        query: `
-          CREATE OR REPLACE FUNCTION get_images(
-            IN input_trip_id INT
-          )
-          RETURNS TABLE (
-              id VARCHAR(255), -- Change data type to match tripimages.id
-              image VARCHAR(300)
-          )
-          AS $$
-          BEGIN
-              RETURN QUERY
-              SELECT 
-              tripimages.id,
-              tripimages.image
-              FROM 
-              tripimages 
-              WHERE tripimages.trip_id = input_trip_id;
-          END;
-          $$ LANGUAGE plpgsql;
-        `
-      },      
-      {
-        name: "delete_image",
-        query: `
-          CREATE OR REPLACE PROCEDURE delete_image(
-            IN input_image_id VARCHAR(255)
-          )
-          AS $$
-          BEGIN
-            DELETE FROM tripimages WHERE id = input_image_id;
-          END;
-          $$ LANGUAGE plpgsql;
-        `
-      },   
-      {
-        name: "get_includes",
-        query: `
-          CREATE OR REPLACE FUNCTION get_includes(
-            IN input_trip_id INT
-          )
-          RETURNS TABLE (
-              id INT,
-              description VARCHAR(300)
-          )
-          AS $$
-          BEGIN
-              RETURN QUERY
-              SELECT 
-              includes.id,
-              includes.description
-              FROM 
-              includes 
-              WHERE includes.trip_id = input_trip_id;
-          END;
-          $$ LANGUAGE plpgsql;
-        `
-      },
-      {
-        name: "deleteinclude",
-        query: `
-          CREATE OR REPLACE PROCEDURE deleteinclude(
-            IN input_include_id INT
-          )
-          AS $$
-          BEGIN
-            DELETE FROM includes WHERE id = input_include_id;
-          END;
-          $$ LANGUAGE plpgsql;
-        `
-      },      
-      {
-        name: "trips_names",
-        query: `
-        CREATE OR REPLACE FUNCTION trips_names()
-        RETURNS TABLE (
-            id INT,
-            name VARCHAR(300)
-        )
-        AS $$
-        BEGIN
-            RETURN QUERY
-            SELECT 
-            trips.id,
-            trips.name
-            FROM 
-                trips 
-            LEFT JOIN 
-                tripimages ON trips.id = tripimages.trip_id
-            LEFT JOIN 
-                includes ON trips.id = includes.trip_id
-            GROUP BY 
-                trips.id;
-        END;
-        $$ LANGUAGE plpgsql;
-
-        `
-      },
-      {
-        name: "get_trip",
-        query: `
-        CREATE OR REPLACE FUNCTION get_trip(
-          IN input_trip_id INT
-        )
-        RETURNS TABLE (
-          id INT,
-          name VARCHAR(300),
-          price INT,
-          vechicle VARCHAR(300),
-          gudinjg VARCHAR(300),
-          duration VARCHAR(300),
-          description VARCHAR(1500),
-          images VARCHAR[],
-          inclusion_descriptions VARCHAR[]
-        )
-        AS $$
-        BEGIN
-            RETURN QUERY
-            SELECT 
-            trips.id,
-            trips.name,
-            trips.price,
-            trips.vechicle,
-            trips.gudinjg,
-            trips.duration,
-            trips.description,
-            array_agg(DISTINCT tripimages.image) AS images,
-            array_agg(DISTINCT includes.description) AS inclusion_descriptions
-            FROM 
-                trips 
-            LEFT JOIN 
-                tripimages ON trips.id = tripimages.trip_id
-            LEFT JOIN 
-                includes ON trips.id = includes.trip_id
-            WHERE   trips.id = input_trip_id  
-            GROUP BY 
-                trips.id;
-        END;
-        $$ LANGUAGE plpgsql;
-
-        `,
-      },
-      {
-        name: "Search",
-        query: `
-        CREATE OR REPLACE FUNCTION Search(
-          IN input_name VARCHAR(300)
-      )
-      RETURNS TABLE (
-          id INT,
-          name VARCHAR(300),
-          price INT,
-          vechicle VARCHAR(300),
-          gudinjg VARCHAR(300),
-          duration VARCHAR(300),
-          description VARCHAR(1500),
-          images VARCHAR[],
-          inclusion_descriptions VARCHAR[]
-      )
-      AS $$
-      BEGIN
-          RETURN QUERY
-          SELECT 
-              trips.id,
-              trips.name,
-              trips.price,
-              trips.vechicle,
-              trips.gudinjg, 
-              trips.duration,
-              trips.description,
-              array_agg(DISTINCT tripimages.image) AS images,
-              array_agg(DISTINCT includes.description) AS inclusion_descriptions
-          FROM 
-              trips 
-          LEFT JOIN 
-              tripimages ON trips.id = tripimages.trip_id
-          LEFT JOIN 
-              includes ON trips.id = includes.trip_id
-          WHERE   
-              (input_name IS NULL OR trips.name LIKE '%' || input_name || '%')  
-          GROUP BY 
-              trips.id;
-      END;
-      $$ LANGUAGE plpgsql;      
-        `,
-      },
-      {
-        name: "get_4_trips",
-        query: `
-        CREATE OR REPLACE FUNCTION get_4_trips()
-        RETURNS TABLE (
-          id INT,
-          name VARCHAR(300),
-          price INT,
-          vechicle VARCHAR(300),
-          gudinjg VARCHAR(300),
-          duration VARCHAR(300),
-          description VARCHAR(1500),
-          images VARCHAR[],
-          inclusion_descriptions VARCHAR[]
+            image VARCHAR(300)
         )
         AS $$
         BEGIN
@@ -479,27 +216,145 @@ async function procedureReady() {
                 trips.id,
                 trips.name,
                 trips.price,
-                trips.vechicle,
+                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
                 trips.gudinjg,
                 trips.duration,
                 trips.description,
-                array_agg(DISTINCT tripimages.image) AS images,
-                array_agg(DISTINCT includes.description) AS inclusion_descriptions
+                trips.image 
+            FROM 
+                trips;
+        END;
+        $$ LANGUAGE plpgsql;        
+        `
+      }, 
+      
+      {
+        name: "trips_names",
+        query: `
+        CREATE OR REPLACE FUNCTION trips_names()
+        RETURNS TABLE (
+            id VARCHAR(255),
+            name VARCHAR(300)
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.name
+            FROM 
+                trips;
+        END;
+        $$ LANGUAGE plpgsql;         
+        `
+      },
+      {
+        name: "get_trip",
+        query: `
+        CREATE OR REPLACE FUNCTION get_trip(
+          IN input_trip_id VARCHAR(255)
+        )
+        RETURNS TABLE (
+          id VARCHAR(255),
+          name VARCHAR(300),
+          price INT,
+          vehicle VARCHAR(300), 
+          gudinjg VARCHAR(300),
+          duration VARCHAR(300),
+          description VARCHAR(1500),
+          image VARCHAR(300) 
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.name,
+                trips.price,
+                trips.vehicle,
+                trips.gudinjg,
+                trips.duration,
+                trips.description,
+                trips.image 
             FROM 
                 trips 
-            LEFT JOIN 
-                tripimages ON trips.id = tripimages.trip_id
-            LEFT JOIN 
-                includes ON trips.id = includes.trip_id
-            GROUP BY 
-                trips.id
+            WHERE   
+                trips.id = input_trip_id; -- Added semicolon at the end of the WHERE clause
+        END;
+        $$ LANGUAGE plpgsql;
+         
+        `
+      },
+      {
+        name: "Search",
+        query: `
+        CREATE OR REPLACE FUNCTION Search(
+          IN input_name VARCHAR(300)
+        )
+        RETURNS TABLE (
+            id VARCHAR(255),
+            name VARCHAR(300),
+            price INT,
+            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
+            gudinjg VARCHAR(300),
+            duration VARCHAR(300),
+            description VARCHAR(1500),
+            image VARCHAR(300) 
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.name,
+                trips.price,
+                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
+                trips.gudinjg, 
+                trips.duration,
+                trips.description,
+                trips.image
+            FROM 
+                trips 
+            WHERE   
+                (input_name IS NULL OR trips.name LIKE '%' || input_name || '%'); -- Added semicolon at the end of the WHERE clause
+        END;
+        $$ LANGUAGE plpgsql;        
+        `,
+      },
+      {
+        name: "get_4_trips",
+        query: `
+        CREATE OR REPLACE FUNCTION get_4_trips()
+        RETURNS TABLE (
+            id VARCHAR(255),
+            name VARCHAR(300),
+            price INT,
+            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
+            gudinjg VARCHAR(300),
+            duration VARCHAR(300),
+            description VARCHAR(1500),
+            image VARCHAR(300)
+        )
+        AS $$
+        BEGIN
+            RETURN QUERY
+            SELECT 
+                trips.id,
+                trips.name,
+                trips.price,
+                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
+                trips.gudinjg,
+                trips.duration,
+                trips.description,
+                trips.image
+            FROM 
+                trips 
             ORDER BY 
                 RANDOM()
             LIMIT 
                 4;
         END;
-        $$ LANGUAGE plpgsql;
-
+        $$ LANGUAGE plpgsql;        
         `,
       },
       {
@@ -507,64 +362,51 @@ async function procedureReady() {
         query: `
         CREATE OR REPLACE FUNCTION get_3_trips()
         RETURNS TABLE (
-            id INT,
+            id VARCHAR(255),
+            name VARCHAR(300),
             price INT,
-            vehicle VARCHAR(300),
+            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
+            gudinjg VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
-            images VARCHAR[],
-            inclusion_descriptions VARCHAR[]
+            image VARCHAR(300)
         )
         AS $$
         BEGIN
             RETURN QUERY
             SELECT 
-            trips.id,
-            trips.name,
-            trips.price,
-            trips.vechicle,
-            trips.gudinjg,
-            trips.duration,
-            trips.description,
-            array_agg(DISTINCT tripimages.image) AS images,
-            array_agg(DISTINCT includes.description) AS inclusion_descriptions
+                trips.id,
+                trips.name,
+                trips.price,
+                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
+                trips.gudinjg,
+                trips.duration,
+                trips.description,
+                trips.image
             FROM 
                 trips 
-            LEFT JOIN 
-                tripimages ON trips.id = tripimages.trip_id
-            LEFT JOIN 
-                includes ON trips.id = includes.trip_id
-            GROUP BY 
-                trips.id
             ORDER BY 
                 RANDOM()
             LIMIT 
                 3;
         END;
         $$ LANGUAGE plpgsql;
-
         `,
       },
       {
         name: "delete_trip",
         query: `
-        CREATE OR REPLACE PROCEDURE delete_trip(IN input_trip_id INT)
+        CREATE OR REPLACE PROCEDURE delete_trip(IN input_trip_id VARCHAR(255))
         LANGUAGE plpgsql
         AS $$
         BEGIN
-            -- Delete from tripimages table
-            DELETE FROM tripimages WHERE trip_id = input_trip_id;
-        
-            -- Delete from includes table
-            DELETE FROM includes WHERE trip_id = input_trip_id;
-        
-            -- Delete from trips table
             DELETE FROM trips WHERE id = input_trip_id;
         END;
-        $$;
+        $$;        
         `,
       },
-      {
+
+       {
         name: "insert_contactus",
         query: `CREATE OR REPLACE PROCEDURE insert_contactus(
           in_name VARCHAR(255),
