@@ -51,6 +51,9 @@ const
         }
      })
 
+
+
+
      async function getTotal(o_id, u_id) {
         try {
             let result = await client.query("SELECT * FROM check_total ($1,$2);", [u_id, o_id]);
@@ -72,6 +75,8 @@ const
             return res.status(404).json({ msg: error.message });
         }
     });
+    
+
     
 
      router.get("/",isAdmin,async(req,res)=>{
